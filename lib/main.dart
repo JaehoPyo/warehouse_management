@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:warehouse_management/model/side_menu_model.dart';
+import 'package:warehouse_management/provider/current_page.dart';
+
+import 'components/main_app_bar.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,12 +15,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<CurrentPage>(
+          create: (context) => CurrentPage(),
+        )
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          primarySwatch: Colors.blue,
+        ),
+        home: const MainLayout(),
       ),
-      home: const MainLayout(),
     );
   }
 }
@@ -31,52 +43,50 @@ class _MainLayoutState extends State<MainLayout> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const MainAppBar(),
-      body: Container(),
+      appBar: MainAppBar(),
+      body: Row(children: [
+        Expanded(
+          flex: 1,
+          child: SideMenu(),
+        ),
+        Expanded(
+          flex: 6,
+          child: Container(
+            color: Colors.green,
+          ),
+        ),
+      ]),
     );
   }
 }
 
-class MainAppBar extends StatelessWidget with PreferredSizeWidget {
-  @override
-  Size get preferredSize => const Size(
-        double.maxFinite,
-        70,
-      );
-  const MainAppBar({super.key});
+class SideMenu extends StatelessWidget {
+  SideMenu({super.key});
+
+  final List<SideMenuModel> menuList = [
+    SideMenuModel(
+        mainItem: "main 1",
+        subItem: ["sub 1-1", "sub 1-2", "sub 1-3", "sub 1-4"]),
+    SideMenuModel(
+        mainItem: "main 2",
+        subItem: ["sub 2-1", "sub 2-2", "sub 2-3", "sub 2-4"]),
+    SideMenuModel(
+        mainItem: "main 3",
+        subItem: ["sub 3-1", "sub 3-2", "sub 3-3", "sub 3-4"]),
+    SideMenuModel(
+        mainItem: "main 4",
+        subItem: ["sub 4-1", "sub 4-2", "sub 4-3", "sub 4-4"]),
+    SideMenuModel(
+        mainItem: "main 5",
+        subItem: ["sub 5-1", "sub 5-2", "sub 5-3", "sub 5-4"]),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        width: preferredSize.width,
-        height: preferredSize.height,
-        color: Colors.blue,
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            color: Colors.white,
-            child: Image.asset('assets/images/logo.png'),
-          ),
-          Text("Main Menu"),
-          const Spacer(),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16.0),
-              color: Colors.blueAccent,
-            ),
-            padding: const EdgeInsets.all(8.0),
-            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: const [
-                Icon(Icons.access_time),
-                Text("12:00:00.00"),
-              ],
-            ),
-          ),
-        ]),
-      ),
-    );
+    return ListView.builder(
+        itemCount: menuList.length,
+        itemBuilder: (context, index) {
+          return Text(menuList[index].mainItem);
+        });
   }
 }
