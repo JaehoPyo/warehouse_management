@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:warehouse_management/model/side_menu_model.dart';
-import 'package:warehouse_management/provider/current_page.dart';
 
 import 'components/main_app_bar.dart';
+import 'provider/page_data.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,9 +17,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<CurrentPage>(
-          create: (context) => CurrentPage(),
-        )
+        ChangeNotifierProvider<PageData>(
+          create: (context) => PageData(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -45,7 +45,7 @@ class _MainLayoutState extends State<MainLayout> {
     return Scaffold(
       appBar: MainAppBar(),
       body: Row(children: [
-        Expanded(
+        const Expanded(
           flex: 1,
           child: SideMenu(),
         ),
@@ -61,32 +61,85 @@ class _MainLayoutState extends State<MainLayout> {
 }
 
 class SideMenu extends StatelessWidget {
-  SideMenu({super.key});
-
-  final List<SideMenuModel> menuList = [
-    SideMenuModel(
-        mainItem: "main 1",
-        subItem: ["sub 1-1", "sub 1-2", "sub 1-3", "sub 1-4"]),
-    SideMenuModel(
-        mainItem: "main 2",
-        subItem: ["sub 2-1", "sub 2-2", "sub 2-3", "sub 2-4"]),
-    SideMenuModel(
-        mainItem: "main 3",
-        subItem: ["sub 3-1", "sub 3-2", "sub 3-3", "sub 3-4"]),
-    SideMenuModel(
-        mainItem: "main 4",
-        subItem: ["sub 4-1", "sub 4-2", "sub 4-3", "sub 4-4"]),
-    SideMenuModel(
-        mainItem: "main 5",
-        subItem: ["sub 5-1", "sub 5-2", "sub 5-3", "sub 5-4"]),
-  ];
+  const SideMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: menuList.length,
-        itemBuilder: (context, index) {
-          return Text(menuList[index].mainItem);
-        });
+    return FutureBuilder<void>(
+      future: Provider.of<PageData>(context).fetchMenuList(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+        if (snapshot.hasError == true) {
+          return Center(child: Text(snapshot.error.toString()));
+        }
+
+        return Consumer<PageData>(
+          builder: (context, value, child) => ListView.builder(
+              itemCount: value.list.length,
+              itemBuilder: (context, index) {
+                return SideMenuItem(item: value.list[index]);
+              }),
+        );
+      },
+    );
+  }
+}
+
+class SideMenuItem extends StatefulWidget {
+  final SideMenuModel item;
+  const SideMenuItem({super.key, required this.item});
+
+  @override
+  State<SideMenuItem> createState() => _SideMenuItemState();
+}
+
+class _SideMenuItemState extends State<SideMenuItem> {
+  bool isOpen = false;
+
+  _toggleOpen() {
+    setState(() {
+      isOpen = !isOpen;
+    });
+  }
+
+  _buildTrailing() {
+    if (widget.item.hasSubMenu == false) {
+      return null;
+    }
+
+    return isOpen
+        ? const Icon(Icons.arrow_drop_up)
+        : const Icon(Icons.arrow_drop_down);
+  }
+
+  List<Widget> _buildItem() {
+    List<Widget> list = [];
+    list.add(ListTile(
+      title: Text(widget.item.pageName),
+      trailing: _buildTrailing(),
+      onTap: _toggleOpen,
+    ));
+    if (widget.item.subItem == null) {
+      return list;
+    }
+
+    if (isOpen) {
+      for (int i = 0; i < widget.item.subItem!.length; i++) {
+        list.add(ListTile(title: Text(widget.item.subItem![i].pageName)));
+      }
+    }
+
+    return list;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: _buildItem(),
+    );
   }
 }

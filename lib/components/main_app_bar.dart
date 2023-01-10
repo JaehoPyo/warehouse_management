@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:warehouse_management/provider/current_page.dart';
+import 'package:warehouse_management/provider/page_data.dart';
 
 class MainAppBar extends StatefulWidget with PreferredSizeWidget {
   MainAppBar({super.key});
@@ -20,21 +20,23 @@ class MainAppBar extends StatefulWidget with PreferredSizeWidget {
 
 class _MainAppBarState extends State<MainAppBar> {
   late Timer _tmrNow;
+  DateTime now = DateTime.now();
   String _dateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+
   @override
   void initState() {
     super.initState();
     _tmrNow = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {
-        _dateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now());
+        _dateTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(now);
       });
     });
   }
 
   @override
   void dispose() {
-    super.dispose();
     _tmrNow.cancel();
+    super.dispose();
   }
 
   @override
@@ -45,6 +47,7 @@ class _MainAppBarState extends State<MainAppBar> {
         height: widget.preferredSize.height,
         color: Colors.blue,
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               flex: 1,
@@ -55,22 +58,27 @@ class _MainAppBarState extends State<MainAppBar> {
               ),
             ),
             Expanded(
-              flex: 5,
-              child: Consumer<CurrentPage>(
-                builder: (context, value, child) => Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Text(value.currentPage),
+              flex: 4,
+              child: Consumer<PageData>(
+                builder: (context, value, child) => FittedBox(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    //color: Colors.orange,
+                    child: Text(value.currentPage),
+                  ),
                 ),
               ),
             ),
             const Spacer(),
             Expanded(
               flex: 1,
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Chip(
-                  avatar: const Icon(Icons.access_time),
-                  label: Text(_dateTime),
+              child: FittedBox(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Chip(
+                    avatar: const Icon(Icons.access_time),
+                    label: Text(_dateTime),
+                  ),
                 ),
               ),
             ),
